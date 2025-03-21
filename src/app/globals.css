@@ -1,0 +1,68 @@
+@import "tailwindcss";
+
+:root {
+  --white: #ffffff;
+  --gray:#f8f8f8;
+  --black:#030E15;
+}
+
+
+body {
+  background: var(--gray);
+  color: var(--black);
+  font-family: Arial, Inter, sans-serif;
+}
+
+body{
+  background-color: var(--gray);
+  color:var(--black);
+  -webkit-font-smoothing:antialiased;
+  scroll-behavior: smooth;
+}
+
+img{
+  max-width: 100%;
+  display: block;
+  all:unset;
+}
+
+.img_banner{
+  border-radius: 8px;
+  height: auto;
+}
+
+/* CSS  */
+
+.box_form{
+  background-color: var(--white);
+  width: 100%;
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 2rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  
+}
+
+.box_form .imgBanner{
+  overflow: hidden;
+}
+
+.imgBanner{
+  max-width: 100%;
+  width: 736px;
+  height: auto;
+  padding: 2rem;
+  display: block;
+  border-radius:8px;
+  object-fit: cover;
+}
+
+@media(min-width: 640px){
+  body{
+    padding: 1rem;
+  }
+  .box_form{
+    width: 90%;
+    padding: 1.5rem;
+  }
+}
