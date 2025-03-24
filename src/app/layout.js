@@ -2,7 +2,6 @@ import { Inter, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import 'react-toastify/dist/ReactToastify.css';
 
-
 export const inter = Inter({
   subsets:["latin"],
   weight:["400","500","600","700"],

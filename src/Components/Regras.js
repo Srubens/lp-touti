@@ -56,16 +56,16 @@ function Reagras(){
                         <a href="https://touti.com.br/" target="_blank" className="social-link flex flex-col">
                             <svg strokeWidth="1.5" className="social-icon m-auto" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
                             >
-                                <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                             </svg>
                             <span className="mt-4" >Site Oficial</span>
                         </a>
                         <a href="https://www.instagram.com/touticosmetics/" target="_blank" className="social-link flex flex-col"  >
                             <svg strokeWidth="1.5" className="social-icon m-auto" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <rect x="2" y="2" width="20" height="20" rx="5" stroke="currentColor" stroke-width="2"/>
-                                <circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="2"/>
+                                <rect x="2" y="2" width="20" height="20" rx="5" stroke="currentColor" strokeWidth="2"/>
+                                <circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="2"/>
                                 <circle cx="17" cy="7" r="1" fill="currentColor"/>
                             </svg>
                             <span className="mt-4" >Instagram</span>

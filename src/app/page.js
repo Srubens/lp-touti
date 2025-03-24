@@ -261,7 +261,17 @@ useEffect(() => {
 
 const getNextFiveDays = () => {
   const days = [];
-  const local = "Shopping Pateo Paulista";
+  
+  // Map de estados para shoppings
+  const shoppingPorEstado = {
+    'SP': 'Shopping São Paulo',
+    'PE': 'Shopping Recife',
+    'RJ': 'Shopping Penha',
+    'DF': 'Shopping Pateo Brasíl',
+    'CE': 'Shopping RioMar Fortaleza'
+  };
+
+  const local = shoppingPorEstado[formData.estado] || 'Shopping';
   const horarios = [
     { value: 'horario1', label: '10h - 13h' },
     { value: 'horario2', label: '13h - 18h' },
