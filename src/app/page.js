@@ -6,6 +6,7 @@ import { z } from "zod";
 import { ToastContainer, toast } from 'react-toastify';
 import Banner1 from '@/assets/Banner1.jpg';
 import bannerCity from '@/assets/bannerCity.jpg';
+import Reagras from '@/Components/Regras';
 
 const formSchema = z.object({
   nome: z.string().min(4, 'Nome deve ter no mínimo 3 caracteres'),
@@ -281,12 +282,12 @@ const getNextFiveDays = () => {
   return days;
 };
 
-
   return (
-    <div className='box_form container p-4 rounded-md max-w-[21.25rem]' >
+    <>
+    <div className='box_form container p-4 rounded-md sm:p-6 md:p-8 rounded-md w-[21.875rem] sm:w-[35rem] lg:w-[50rem] mx-auto' >
       <div className='mb-4 flex mx-auto justify-center w-full rounded-md'>
         <Image 
-          src={bannerCity}
+          src={Banner1}
           alt="imagem do produto"
           width={736}
           height={386}
@@ -488,5 +489,7 @@ const getNextFiveDays = () => {
         <ToastContainer />
       </form>
     </div>
+      <Reagras/>
+    </>
   );
 }

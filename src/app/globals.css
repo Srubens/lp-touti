@@ -33,14 +33,15 @@ img{
 
 /* CSS  */
 
-.box_form{
+.box_form, .box-rules{
   background-color: var(--white);
   width: 100%;
   max-width: 800px;
   margin: 2rem auto;
   padding: 2rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  
+  margin-bottom: 20px;
+  border-radius: 8px;
 }
 
 .box_form .imgBanner{
@@ -53,7 +54,7 @@ img{
   height: auto;
   padding: 2rem;
   display: block;
-  border-radius:8px;
+  border-radius:7rem;
   object-fit: cover;
 }
 
@@ -65,4 +66,9 @@ img{
     width: 90%;
     padding: 1.5rem;
   }
+}
+
+svg{
+  width: 24px;
+  height: 24px;
 }
