@@ -167,6 +167,7 @@ export default function Home() {
           data: moment().format("YYYY-MM-DD HH:mm:ss"),
           aceitaTermos: false,
         });
+        
       } else {
         errorNotify(result.error || 'Erro ao realizar cadastro');
       }
