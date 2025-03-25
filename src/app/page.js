@@ -5,8 +5,9 @@ import moment from 'moment';
 import { z } from "zod";
 import { ToastContainer, toast } from 'react-toastify';
 import Banner1 from '@/assets/Banner1.jpg';
-import bannerCity from '@/assets/bannerCity.jpg';
 import Reagras from '@/Components/Regras';
+import { read, utils } from 'xlsx';
+import "moment/locale/pt-br";
 
 const formSchema = z.object({
   nome: z.string().min(4, 'Nome deve ter no mínimo 3 caracteres'),
@@ -16,8 +17,7 @@ const formSchema = z.object({
 
 export default function Home() {
 
-  moment.locale('pt-br');
-
+  // MENSAGEM DE SUCESSO
   const successNotify = () => toast.success("Cadastro realizado com sucesso!", {
     position: "top-right",
     autoClose: 3000,
@@ -27,6 +27,7 @@ export default function Home() {
     }
   });
   
+  // MESSAGEM DE ERRO 
   const errorNotify = (message) => toast.error(message, {
     position: "top-right",
     autoClose: 3000,
@@ -49,15 +50,12 @@ export default function Home() {
     escolhahorario: '',
     data: moment().format("YYYY/MM/DD hh:mm:ss"),
     aceitaTermos: false,
+    saurus:'',
   });
 
   // Adicionar novo estado para erros
   const [errors, setErrors] = useState({});
 
-  const [status, setStatus] = useState({
-    message: '',
-    type: ''
-  });
 
   // Adicionar função para verificar se o formulário está válido
   const isFormValid = () => {
@@ -98,6 +96,7 @@ export default function Home() {
     try {
 
       const cupom = generateCupom();
+      const currentData = moment().format("YYYY-MM-DD HH:mm:ss");
       // Verificar se usuário já existe
       const checkResult = await checkExistingUser(formData.email, formData.cpf);
       
@@ -182,10 +181,22 @@ export default function Home() {
     const { name, value, type, checked } = e.target;
     const newValue = type === 'checkbox' ? checked : value;
     
-    setFormData(prev => ({
-      ...prev,
-      [name]: newValue
-    }));
+    if (name === 'escolhahorario' && value) {
+      // Find the selected horario in the getNextFiveDays data
+      const allDays = getNextFiveDays();
+      const selectedHorario = allDays.flatMap(day => day.horarios).find(h => h.label === value);
+      
+      setFormData(prev => ({
+        ...prev,
+        [name]: value,
+        saurus: selectedHorario ? selectedHorario.saurus : ''
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: newValue
+      }));
+    }
 
     // Validar campo se for nome, cpf ou email
     if (['nome', 'cpf', 'email'].includes(name)) {
@@ -258,37 +269,89 @@ useEffect(() => {
   fetchCidades();
 }, [formData.estado]);
 
+// LOJAS E SAURUS E ESTADO
+const [locations, setLocations] = useState([]);
+
+// Adicionar useEffect para carregar o Excel
+useEffect(() => {
+  const loadLocations = async () => {
+    try {
+      const response = await fetch('/data/lojas.xlsx');
+      if (!response.ok) {
+        throw new Error('Arquivo não encontrado');
+      }
+      const arrayBuffer = await response.arrayBuffer();
+      const workbook = read(arrayBuffer);
+      const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+      const data = utils.sheet_to_json(worksheet);
+      // console.log('Dados do Excel:', data);
+      setLocations(data);
+    } catch (error) {
+      // console.error('Erro ao carregar locais:', error);
+      setLocations([]);
+    }
+  };
+  loadLocations();
+}, []);
 
 const getNextFiveDays = () => {
   const days = [];
   
-  // Map de estados para shoppings
-  const shoppingPorEstado = {
-    'SP': 'Shopping São Paulo',
-    'PE': 'Shopping Recife',
-    'RJ': 'Shopping Penha',
-    'DF': 'Shopping Pateo Brasíl',
-    'CE': 'Shopping RioMar Fortaleza'
-  };
+  if (!formData.estado || !locations.length) {
+    return days;
+  }
 
-  const local = shoppingPorEstado[formData.estado] || 'Shopping';
-  const horarios = [
-    { value: 'horario1', label: '10h - 13h' },
-    { value: 'horario2', label: '13h - 18h' },
-    { value: 'horario3', label: '18h - 22h' }
-  ];
+  // Filtrar locais pelo estado selecionado
+  const stateLocations = locations.filter(loc => loc.UF === formData.estado);
+  console.log('lojas encontradas: ', stateLocations);
 
-  for (let i = 1; i <= 5; i++) {
-    const day = moment().add(i, 'days');
-    days.push({
-      date: day.format('DD/MM'),
-      local: local,
-      horarios: horarios.map(horario => ({
-        value: `${day.format('YYYY-MM-DD')}_${horario.value}`,
-        label: `${local} ${day.format('DD/MM')} - ${horario.label}`
-      }))
+  // Se não encontrar lojas para o estado, usar Shopping como padrão
+  if (stateLocations.length === 0) {
+    const horarios = [
+      { value: 'horario1', label: '10h - 13h' },
+      { value: 'horario2', label: '13h - 18h' },
+      { value: 'horario3', label: '18h - 22h' }
+    ];
+
+    for (let i = 1; i <= 5; i++) {
+      const day = moment().add(i, 'days');
+      days.push({
+        date: day.format('DD/MM'),
+        local: 'Shopping',
+        horarios: horarios.map(horario => ({
+          value: `${day.format('YYYY-MM-DD')}_Shopping_${horario.value}`,
+          label: `Shopping ${day.format('DD/MM')} - ${horario.label}`
+        }))
+      });
+    }
+  } else {
+    // Usar as lojas encontradas no Excel
+    stateLocations.forEach(location => {
+      const local = location.LOJA;
+      
+      const horarios = [
+        { value: 'horario1', label: '10h - 13h' },
+        { value: 'horario2', label: '13h - 18h' },
+        { value: 'horario3', label: '18h - 22h' }
+      ];
+
+      for (let i = 1; i <= 5; i++) {
+        const day = moment().add(i, 'days');
+        days.push({
+          date: day.format('DD/MM'),
+          local: local,
+          horarios: horarios.map(horario => ({
+            value: `${day.format('YYYY-MM-DD')}_${local}_${horario.value}`,
+            label: `${local} ${day.format('DD/MM')} - ${horario.label}`,
+            saurus: location.SAURUS,
+          })),
+        });
+      }
+      
     });
   }
+
+  console.log('Dias: ', days);
   return days;
 };
 
@@ -305,7 +368,7 @@ const getNextFiveDays = () => {
         />
       </div>
 
-      {/* AQUI VEM O DEBUG  */}
+      {/* AQUI VEM O DEBUG */}
 
       <form onSubmit={handleSubmit} className="max-w-md mx-auto space-y-4">
         <div>
@@ -421,29 +484,30 @@ const getNextFiveDays = () => {
         <div>
           <label className="block mb-2">Escolha a data e horário:</label>
           <select
-          name="escolhahorario"
-          value={formData.escolhahorario}
-          onChange={handleChange}
-          className="w-full p-2 border rounded"
-          required
-        >
-          <option value="">Selecione um horário</option>
-          {getNextFiveDays().map(day => (
-            day.horarios.map(horario => {
-              const isDisabled = (horariosOcupados[horario.label] || 0) >= 2;
-              return (
-                <option 
-                  key={horario.value} 
-                  value={horario.label}
-                  disabled={isDisabled}
-                >
-                  {horario.label} 
-                  {isDisabled ? ' (Esgotado)' : ''}
-                </option>
-              );
-            })
-          ))}
-        </select>
+            name="escolhahorario"
+            value={formData.escolhahorario}
+            onChange={handleChange}
+            className="w-full p-2 border rounded"
+            required
+          >
+            <option value="">Selecione um horário</option>
+            {getNextFiveDays().flatMap(day => 
+              day.horarios.map(horario => {
+                const isDisabled = (horariosOcupados[horario.label] || 0) >= 2;
+                return (
+                  <option 
+                    key={horario.value} 
+                    value={horario.label}
+                    disabled={isDisabled}
+                  >
+                    {horario.label}
+                    {isDisabled ? ' (Esgotado)' : ''}
+                    
+                  </option>
+                );
+              })
+            )}
+          </select>
         </div>
 
         <div>

@@ -58,12 +58,12 @@ img{
   object-fit: cover;
 }
 
-@media(min-width: 640px){
+@media(max-width: 640px){
   body{
     padding: 1rem;
   }
   .box_form{
-    width: 90%;
+    width: 98%;
     padding: 1.5rem;
   }
 }

@@ -13,7 +13,7 @@ export async function POST(request) {
     });
 
     const [result] = await connection.execute(
-      'INSERT INTO promocao (nome, cpf, email, ddd, celular, uf, cidade, dtdata, aceito_termos, cupom, escolhahorario, clienteTouti) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      'INSERT INTO promocao (nome, cpf, email, ddd, celular, uf, cidade, dtdata, aceito_termos, cupom, escolhahorario, clienteTouti,saurus) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
       [
         formData.nome,
         formData.cpf,
@@ -26,7 +26,8 @@ export async function POST(request) {
         formData.aceitaTermos ? 1 : 0,
         formData.cupom,
         formData.escolhahorario,
-        formData.clienteTouti === 'sim' ? 'sim' : 'não'
+        formData.clienteTouti === 'sim' ? 'sim' : 'não',
+        formData.saurus,
       ]
     );
 

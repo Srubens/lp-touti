@@ -25,6 +25,10 @@ export default function RootLayout({ children }) {
       <head>
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <meta name="viewport" content="initial-scale=1, width=device-width" />
+        <meta
+          name="format-detection"
+          content="telephone=no, date=no, email=no, address=no"
+        />
       </head>
       <body
         className={`${inter.variable} ${geistMono.variable} antialiased`}
