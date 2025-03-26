@@ -10,9 +10,9 @@ import { read, utils } from 'xlsx';
 import "moment/locale/pt-br";
 
 const formSchema = z.object({
-  nome: z.string().min(4, 'Nome deve ter no mínimo 3 caracteres'),
-  cpf: z.string().length(11, 'CPF deve ter 11 dígitos').regex(/^\d+$/, 'CPF deve conter apenas números'),
-  email: z.string().email('Email inválido'),
+  nome: z.string().min(8, 'Nome deve ter no mínimo 8 caracteres'),
+  cpf: z.string().min(11, 'CPF deve ter 11 dígitos').regex(/^\d+$/, 'CPF deve conter apenas números'),
+  email: z.string().email('Email inválido').regex(/^[^@]+@[^@]+\.(com|com\.br)$/, 'Email deve terminar com .com ou .com.br'),
 });
 
 export default function Home() {
@@ -55,7 +55,6 @@ export default function Home() {
 
   // Adicionar novo estado para erros
   const [errors, setErrors] = useState({});
-
 
   // Adicionar função para verificar se o formulário está válido
   const isFormValid = () => {
@@ -182,8 +181,14 @@ export default function Home() {
     const { name, value, type, checked } = e.target;
     const newValue = type === 'checkbox' ? checked : value;
     
-    if (name === 'escolhahorario' && value) {
-      // Find the selected horario in the getNextFiveDays data
+    if (name === 'cpf') {
+      // Remove qualquer caractere que não seja número
+      const numbersOnly = value.replace(/\D/g, '').slice(0,11);
+      setFormData(prev => ({
+        ...prev,
+        [name]: numbersOnly
+      }));
+    } else if (name === 'escolhahorario' && value) {
       const allDays = getNextFiveDays();
       const selectedHorario = allDays.flatMap(day => day.horarios).find(h => h.label === value);
       
@@ -191,6 +196,24 @@ export default function Home() {
         ...prev,
         [name]: value,
         saurus: selectedHorario ? selectedHorario.saurus : ''
+      }));
+    }else if (name === 'nome') {
+      const nomeOnly = value.replace(/[^a-záàâãéèêíïóôõöúçñ ]/gi, '');
+      setFormData(prev => ({
+        ...prev,
+        [name]: nomeOnly
+      }));
+    } else if( name === 'ddd' ){
+      const dddOnly = value.replace(/\D/g, '').replace(/(\d{2})\d+?$/)
+      setFormData(prev => ({
+        ...prev,
+        [name]: dddOnly
+      }));
+    }else if (name === 'celular') {
+      const celularOnly = value.replace(/\D/g, '').replace(/(\d{11})\d+?$/)
+      setFormData(prev => ({
+       ...prev,
+        [name]: celularOnly
       }));
     } else {
       setFormData(prev => ({
@@ -202,7 +225,14 @@ export default function Home() {
     // Validar campo se for nome, cpf ou email
     if (['nome', 'cpf', 'email'].includes(name)) {
       try {
-        formSchema.shape[name].parse(value);
+        if (name === 'cpf') {
+          formSchema.shape[name].parse(value.replace(/\D/g, '').replace(/(\d{11})\d+?$/))
+        } else if (name === 'nome') {
+          formSchema.shape[name].parse(value.replace(/[^a-záàâãéèêíïóôõöúçñ ]/gi, ''));
+        } 
+        else {
+          formSchema.shape[name].parse(value);
+        }
         setErrors(prev => ({ ...prev, [name]: '' }));
       } catch (error) {
         setErrors(prev => ({ ...prev, [name]: error.errors[0].message }));
@@ -321,7 +351,7 @@ const getNextFiveDays = () => {
         local: 'Shopping',
         horarios: horarios.map(horario => ({
           value: `${day.format('YYYY-MM-DD')}_Shopping_${horario.value}`,
-          label: `Shopping ${day.format('DD/MM')} - ${horario.label}`
+          label: `Shopping - ${day.format('DD/MM')} - ${horario.label}`
         }))
       });
     }
@@ -343,7 +373,7 @@ const getNextFiveDays = () => {
           local: local,
           horarios: horarios.map(horario => ({
             value: `${day.format('YYYY-MM-DD')}_${local}_${horario.value}`,
-            label: `${local} ${day.format('DD/MM')} - ${horario.label}`,
+            label: `${local} - ${day.format('DD/MM')} - ${horario.label}`,
             saurus: location.SAURUS,
           })),
         });
