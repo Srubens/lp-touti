@@ -1,6 +1,7 @@
 import { Inter, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import 'react-toastify/dist/ReactToastify.css';
+import { Providers } from "@/Components/Providers";
 
 export const inter = Inter({
   subsets:["latin"],
@@ -30,9 +31,8 @@ export default function RootLayout({ children }) {
           content="telephone=no, date=no, email=no, address=no"
         />
       </head>
-      <body
-        className={`${inter.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className={`${inter.variable} ${geistMono.variable} antialiased`} >
+        <Providers/>
         {children}
       </body>
     </html>

@@ -3,7 +3,7 @@ import Image from 'next/image'
 import { useState, useEffect } from "react";
 import moment from 'moment';
 import { z } from "zod";
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 import Banner1 from '@/assets/Banner1.jpg';
 import Reagras from '@/Components/Regras';
 import { read, utils } from 'xlsx';
@@ -591,7 +591,6 @@ const getNextFiveDays = () => {
         >
           Cadastrar
         </button>
-        <ToastContainer />
       </form>
     </div>
       <Reagras/>

@@ -1,0 +1,49 @@
+import { NextResponse } from 'next/server';
+import sql from 'mssql';
+
+const config = {
+  user: 'seu_usuario',
+  password: 'sua_senha',
+  server: 'seu_servidor', // pode ser localhost
+  database: 'nome_do_banco',
+  options: {
+    encrypt: true, // para conexões Azure
+    trustServerCertificate: true // para desenvolvimento local
+  }
+};
+
+export async function POST(request) {
+  try {
+    const formData = await request.json();
+    await sql.connect(config);
+
+    const result = await sql.query`
+      INSERT INTO promocao (
+        nome, cpf, email, ddd, celular, uf, cidade, dtdata, 
+        aceito_termos, cupom, escolhahorario, clienteTouti
+      ) VALUES (
+        ${formData.nome},
+        ${formData.cpf},
+        ${formData.email},
+        ${formData.ddd},
+        ${formData.celular},
+        ${formData.estado},
+        ${formData.cidade},
+        ${formData.data},
+        ${formData.aceitaTermos ? 1 : 0},
+        ${formData.cupom},
+        ${formData.escolhahorario},
+        ${formData.clienteTouti === 'sim' ? 'sim' : 'não'}
+      )`;
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('Erro no cadastro:', error);
+    return NextResponse.json(
+      { success: false, error: 'Erro ao cadastrar usuário' },
+      { status: 500 }
+    );
+  } finally {
+    await sql.close();
+  }
+}
