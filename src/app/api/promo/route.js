@@ -24,7 +24,7 @@ export async function POST(request) {
       String(formData.estado || ''),
       String(formData.cidade || ''),
       String(formData.data || ''),
-      formData.aceitaTermos ? 1 : 0,
+      String(formData.aceitaTermos || 'não'),
       String(formData.cupom || ''),
       String(formData.escolhahorario || ''),
       String(formData.clienteTouti || 'não'),

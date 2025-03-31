@@ -6,6 +6,7 @@ const resend = new Resend('re_3YqJBhDG_83Bt9hxa6DySDRt8J95fFGxm');
 export async function POST(request) {
   try {
     const formData = await request.json();
+    console.log(formData);
     const { data, error } = await resend.emails.send({
       from: 'Touti <onboarding@resend.dev>',
       to: formData.email,

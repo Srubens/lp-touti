@@ -144,7 +144,9 @@ export default function Home() {
             escolhahorario: formData.escolhahorario,
             cupom: cupom,
             endereco: formData.endereco,
-            saurus: formData.saurus
+            saurus: formData.saurus,
+            cpf: formData.cpf,
+            cidade: formData.cidade,
           }),
         });
 
@@ -377,7 +379,7 @@ const getNextFiveDays = () => {
         />
       </div>
 
-      {JSON.stringify(formData, null, 2)}
+      {/* AQUI VEM O CODIGO DEBUG */}
 
       <form onSubmit={handleSubmit} className="max-w-md mx-auto space-y-4">
         <div>
