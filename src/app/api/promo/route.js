@@ -5,6 +5,8 @@ export async function POST(request) {
   let connection;
   try {
     const formData = await request.json();
+    //console.log('Dados recebidos:', formData); // Log para debug
+
     connection = await mysql.createConnection({
       host: 'localhost',
       user: 'root',
@@ -12,28 +14,30 @@ export async function POST(request) {
       database: 'db-promo'
     });
 
+    // Garantir que todos os valores sejam strings ou números
+    const values = [
+      String(formData.nome || ''),
+      String(formData.cpf || ''),
+      String(formData.email || ''),
+      String(formData.ddd || ''),
+      String(formData.celular || ''),
+      String(formData.estado || ''),
+      String(formData.cidade || ''),
+      String(formData.data || ''),
+      formData.aceitaTermos ? 1 : 0,
+      String(formData.cupom || ''),
+      String(formData.escolhahorario || ''),
+      String(formData.clienteTouti || 'não'),
+      String(formData.saurus || ''),
+      String(formData.endereco || '')
+    ];
+
     const [result] = await connection.execute(
-      'INSERT INTO promocao (nome, cpf, email, ddd, celular, uf, cidade, dtdata, aceito_termos, cupom, escolhahorario, clienteTouti,saurus) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      [
-        formData.nome,
-        formData.cpf,
-        formData.email,
-        formData.ddd,
-        formData.celular,
-        formData.estado,
-        formData.cidade,
-        formData.data,
-        formData.aceitaTermos ? 1 : 0,
-        formData.cupom,
-        formData.escolhahorario,
-        formData.clienteTouti === 'sim' ? 'sim' : 'não',
-        formData.saurus,
-      ]
+      'INSERT INTO promocao (nome, cpf, email, ddd, celular, uf, cidade, dtdata, aceito_termos, cupom, escolhahorario, clienteTouti, saurus, endereco) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      values
     );
 
-    return NextResponse.json({ 
-      success: true
-    });
+    return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Erro no cadastro:', error);
     return NextResponse.json(

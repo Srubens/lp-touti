@@ -1,20 +1,16 @@
 import { Resend } from 'resend';
+import { EmailTemplate } from '@/Components/EmailTemplate';
 
 const resend = new Resend('re_3YqJBhDG_83Bt9hxa6DySDRt8J95fFGxm');
 
 export async function POST(request) {
   try {
-    const { nome, email, escolhahorario, cupom } = await request.json();
+    const formData = await request.json();
     const { data, error } = await resend.emails.send({
       from: 'Touti <onboarding@resend.dev>',
-      to: email,
+      to: formData.email,
       subject: 'Bem-vindo à Touti!',
-      html: `
-        <h1>Olá ${nome}!</h1>
-        <p>Seja bem-vindo à Touti!</p>
-        <p>Seu horário agendado: ${escolhahorario}</p>
-        <p>Seu cupom de desconto: <strong>${cupom}</strong></p>
-      `
+      html: EmailTemplate(formData)
     });
 
     if (error) {

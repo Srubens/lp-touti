@@ -6,7 +6,6 @@ import { z } from "zod";
 import { toast } from 'react-toastify';
 import Banner1 from '@/assets/Banner1.jpg';
 import Reagras from '@/Components/Regras';
-import { read, utils } from 'xlsx';
 import "moment/locale/pt-br";
 
 const formSchema = z.object({
@@ -51,6 +50,7 @@ export default function Home() {
     data: moment().format("YYYY/MM/DD hh:mm:ss"),
     aceitaTermos: false,
     saurus:'',
+    endereco:'',
   });
 
   // Adicionar novo estado para erros
@@ -62,6 +62,7 @@ export default function Home() {
     const requiredFields = 
       formData.nome.trim() !== '' && 
       formData.email.trim() !== '' && 
+      formData.cpf.trim() !== '' &&  // Add CPF validation
       formData.escolhahorario !== '' && 
       formData.aceitaTermos === true;
     
@@ -95,7 +96,7 @@ export default function Home() {
     try {
 
       const cupom = generateCupom();
-      const currentData = moment().format("YYYY-MM-DD HH:mm:ss");
+      const dataFormatada = moment().format("YYYY-MM-DD HH:mm:ss");
       // Verificar se usuário já existe
       const checkResult = await checkExistingUser(formData.email, formData.cpf);
       
@@ -110,7 +111,11 @@ export default function Home() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({...formData, cupom}),
+        body: JSON.stringify({
+          ...formData,
+          data: dataFormatada,
+          cupom: cupom
+        }),
       });
 
       if (!response.ok) {
@@ -138,11 +143,14 @@ export default function Home() {
             email: formData.email,
             escolhahorario: formData.escolhahorario,
             cupom: cupom,
+            endereco: formData.endereco,
+            saurus: formData.saurus
           }),
         });
 
         const emailResult = await emailResponse.json();
         console.log('Resposta do envio de email:', emailResult);
+        
 
         successNotify();
 
@@ -165,6 +173,8 @@ export default function Home() {
           escolhahorario: '',
           data: moment().format("YYYY-MM-DD HH:mm:ss"),
           aceitaTermos: false,
+          saurus: '',
+          endereco: '',
         });
         
       } else {
@@ -188,7 +198,17 @@ export default function Home() {
         ...prev,
         [name]: numbersOnly
       }));
-    } else if (name === 'escolhahorario' && value) {
+    } else if(name === 'cidade' && value) {
+      const cidadeSelecionada = cidades.find(cidade => cidade.nome === value);
+      setFormData(prev => ({
+        ...prev,
+        [name]: value,
+        saurus: cidadeSelecionada ? cidadeSelecionada.saurus : '',
+        endereco: cidadeSelecionada ? cidadeSelecionada.endereco : ''
+      }));
+    }
+    
+    else if (name === 'escolhahorario' && value) {
       const allDays = getNextFiveDays();
       const selectedHorario = allDays.flatMap(day => day.horarios).find(h => h.label === value);
       
@@ -203,16 +223,16 @@ export default function Home() {
         ...prev,
         [name]: nomeOnly
       }));
-    } else if( name === 'ddd' ){
-      const dddOnly = value.replace(/\D/g, '').replace(/(\d{2})\d+?$/)
+    } else if(name === 'ddd') {
+      const dddOnly = value.replace(/\D/g, '').slice(0, 2);
       setFormData(prev => ({
         ...prev,
         [name]: dddOnly
       }));
-    }else if (name === 'celular') {
-      const celularOnly = value.replace(/\D/g, '').replace(/(\d{11})\d+?$/)
+    } else if(name === 'celular') {
+      const celularOnly = value.replace(/\D/g, '').slice(0, 9);
       setFormData(prev => ({
-       ...prev,
+        ...prev,
         [name]: celularOnly
       }));
     } else {
@@ -269,29 +289,41 @@ export default function Home() {
 
 // Adicionar função para buscar estados
 useEffect(() => {
-  const fetchEstados = async () => {
-    try {
-      const response = await fetch('https://servicodados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome');
-      const data = await response.json();
-      setEstados(data);
-    } catch (error) {
-      console.error('Erro ao buscar estados:', error);
-    }
-  };
-
-  fetchEstados();
+  const estadosDisponiveis = [
+    { id: 1, sigla: 'SP' },
+    { id: 2, sigla: 'RJ' },
+    { id: 3, sigla: 'DF' },
+    { id: 4, sigla: 'GO' }
+  ];
+  setEstados(estadosDisponiveis);
 }, []);
 
 useEffect(() => {
   const fetchCidades = async () => {
     if (formData.estado) {
-      try {
-        const response = await fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${formData.estado}/municipios`);
-        const data = await response.json();
-        setCidades(data);
-      } catch (error) {
-        console.error('Erro ao buscar cidades:', error);
-      }
+      const cidadesPorEstado = {
+        'SP': [
+          { id: 1, nome: 'Shopping Pátio Paulista - Piso Maestro Cardim', endereco: 'R. Treze de Maio, 1947 - Bela Vista, São Paulo', saurus: '1190' },
+          { id: 2, nome: 'Shopping Interlagos - Corredor do Cinemark', endereco: 'Av. Interlagos, 2.255 - Interlagos', saurus: '1244' },
+          { id: 3, nome: 'Golden Square Shopping - Piso L3', endereco: 'Av. Kennedy,700 - Bairro Jardim do Mar, São Bernardo do Campo', saurus: '1237' },
+          { id: 4, nome: 'Campinas Shopping - Piso G2', endereco: 'Rua Jacy Teixeira de Camargo, 940 - Jardim do Lago', saurus: '1231' },
+          { id: 5, nome: 'Shopping Center 3 - Piso Augusta - Corredor Luis Coelho', endereco: 'Av. Paulista, 2064 - Cerqueira César', saurus: '1318' },
+          { id: 6, nome: 'Shopping ABC - Piso P2', endereco: 'Av. Pereira Barreto, 42 - Vila Gilda, Santo André', saurus: '1266' }
+        ],
+        'RJ': [
+          { id: 7, nome: 'Shopping ParkJacarepaguá - Piso L2', endereco: 'Estrada de Jacarepaguá, 6069 - Jacarepaguá, Rio de Janeiro', saurus: '358' },
+          { id: 8, nome: 'Park Shopping Campo Grande - Piso L1', endereco: 'Estrada do Monteiro, 1200 - Campo Grande, Rio de Janeiro', saurus: '1182' },
+          { id: 9, nome: 'Recreio Shopping - Piso 1', endereco: 'Av. das Américas, 19019 - Recreio dos Bandeirantes, Rio de Janeiro', saurus: '1172' }
+        ],
+        'DF': [
+          { id: 10, nome: 'DF Plaza - Piso Térreo', endereco: 'Rua Copaíba, Lote 01 - Águas Claras, Brasília', saurus: '322' }
+        ],
+        'GO': [
+          { id: 11, nome: 'Passeio das águas Shopping - Piso 1', endereco: 'Av. Perimetral Norte, 8303 – Jardim Diamantina, Goiânia', saurus: '655' }
+        ]
+      };
+
+      setCidades(cidadesPorEstado[formData.estado] || []);
     } else {
       setCidades([]);
     }
@@ -300,89 +332,35 @@ useEffect(() => {
   fetchCidades();
 }, [formData.estado]);
 
-// LOJAS E SAURUS E ESTADO
-const [locations, setLocations] = useState([]);
-
-// Adicionar useEffect para carregar o Excel
-useEffect(() => {
-  const loadLocations = async () => {
-    try {
-      const response = await fetch('/data/lojas.xlsx');
-      if (!response.ok) {
-        throw new Error('Arquivo não encontrado');
-      }
-      const arrayBuffer = await response.arrayBuffer();
-      const workbook = read(arrayBuffer);
-      const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-      const data = utils.sheet_to_json(worksheet);
-      // console.log('Dados do Excel:', data);
-      setLocations(data);
-    } catch (error) {
-      // console.error('Erro ao carregar locais:', error);
-      setLocations([]);
-    }
-  };
-  loadLocations();
-}, []);
-
 const getNextFiveDays = () => {
   const days = [];
   
-  if (!formData.estado || !locations.length) {
+  if (!formData.cidade) {
     return days;
   }
 
-  // Filtrar locais pelo estado selecionado
-  const stateLocations = locations.filter(loc => loc.UF === formData.estado);
-  console.log('lojas encontradas: ', stateLocations);
+  const horarios = [
+    { value: 'horario1', label: '10h - 13h' },
+    { value: 'horario2', label: '13h - 18h' },
+    { value: 'horario3', label: '18h - 22h' }
+  ];
 
-  // Se não encontrar lojas para o estado, usar Shopping como padrão
-  if (stateLocations.length === 0) {
-    const horarios = [
-      { value: 'horario1', label: '10h - 13h' },
-      { value: 'horario2', label: '13h - 18h' },
-      { value: 'horario3', label: '18h - 22h' }
-    ];
+  // Encontrar o shopping selecionado para pegar o saurus
+  const selectedShopping = cidades.find(cidade => cidade.nome === formData.cidade);
 
-    for (let i = 1; i <= 5; i++) {
-      const day = moment().add(i, 'days');
-      days.push({
-        date: day.format('DD/MM'),
-        local: 'Shopping',
-        horarios: horarios.map(horario => ({
-          value: `${day.format('YYYY-MM-DD')}_Shopping_${horario.value}`,
-          label: `Shopping - ${day.format('DD/MM')} - ${horario.label}`
-        }))
-      });
-    }
-  } else {
-    // Usar as lojas encontradas no Excel
-    stateLocations.forEach(location => {
-      const local = location.LOJA;
-      
-      const horarios = [
-        { value: 'horario1', label: '10h - 13h' },
-        { value: 'horario2', label: '13h - 18h' },
-        { value: 'horario3', label: '18h - 22h' }
-      ];
-
-      for (let i = 1; i <= 5; i++) {
-        const day = moment().add(i, 'days');
-        days.push({
-          date: day.format('DD/MM'),
-          local: local,
-          horarios: horarios.map(horario => ({
-            value: `${day.format('YYYY-MM-DD')}_${local}_${horario.value}`,
-            label: `${local} - ${day.format('DD/MM')} - ${horario.label}`,
-            saurus: location.SAURUS,
-          })),
-        });
-      }
-      
+  for (let i = 1; i <= 5; i++) {
+    const day = moment().add(i, 'days');
+    days.push({
+      date: day.format('DD/MM'),
+      local: formData.cidade,
+      horarios: horarios.map(horario => ({
+        value: `${day.format('YYYY-MM-DD')}_${formData.cidade}_${horario.value}`,
+        label: `${formData.cidade} - ${day.format('DD/MM')} - ${horario.label}`,
+        saurus: selectedShopping ? selectedShopping.saurus : ''
+      }))
     });
   }
 
-  console.log('Dias: ', days);
   return days;
 };
 
@@ -399,7 +377,7 @@ const getNextFiveDays = () => {
         />
       </div>
 
-      {/* AQUI VEM O DEBUG */}
+      {JSON.stringify(formData, null, 2)}
 
       <form onSubmit={handleSubmit} className="max-w-md mx-auto space-y-4">
         <div>
