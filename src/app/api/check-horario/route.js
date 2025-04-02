@@ -1,39 +1,46 @@
 import { NextResponse } from 'next/server';
-import mysql from 'mysql2/promise';
+import { Pool } from 'pg';
+
+const pool = new Pool({
+    user: 'postgres',
+    host: 'localhost',
+    database: 'db-promo',
+    password: 'saga2016', 
+    port: 5432,
+});
 
 export async function GET(request) {
-  let connection;
   try {
-    connection = await mysql.createConnection({
-      host: 'localhost',
-      user: 'root',
-      password: '',
-      database: 'db-promo'
-    });
+    const result = await pool.query(`
+      SELECT escolhahorario, COUNT(*) as total 
+      FROM promocao 
+      GROUP BY escolhahorario 
+      HAVING COUNT(*) >= 2
+    `);
 
-    // Buscar todos os horários e suas contagens
-    const [rows] = await connection.execute(
-      'SELECT escolhahorario, COUNT(*) as total FROM promocao GROUP BY escolhahorario HAVING total >= 2'
-    );
+    console.log('Resultado da query:', result.rows); // Debug log
 
     const horariosOcupados = {};
-    rows.forEach(row => {
-      horariosOcupados[row.escolhahorario] = row.total;
+    result.rows.forEach(row => {
+      horariosOcupados[row.escolhahorario] = parseInt(row.total);
     });
 
     return NextResponse.json({ 
       success: true, 
       horariosOcupados,
-      horariosDesabilitados: rows.map(row => row.escolhahorario)
+      horariosDesabilitados: result.rows.map(row => row.escolhahorario)
     });
 
   } catch (error) {
-    console.error('Erro detalhado:', error);
+    console.error('Erro detalhado:', {
+      message: error.message,
+      code: error.code,
+      stack: error.stack
+    });
+    
     return NextResponse.json({ 
       success: false, 
-      error: 'Erro ao verificar horários disponíveis' 
+      error: `Erro ao verificar horários: ${error.message}` 
     }, { status: 500 });
-  } finally {
-    if (connection) await connection.end();
   }
 }

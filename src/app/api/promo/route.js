@@ -1,43 +1,52 @@
 import { NextResponse } from 'next/server';
-import mysql from 'mysql2/promise';
+import { Pool } from 'pg';
+
+const pool = new Pool({
+  user: 'postgres',
+  host: 'localhost',
+  database: 'db-promo',
+  password: 'saga2016',
+  port: 5432,
+});
 
 export async function POST(request) {
-  let connection;
+  const client = await pool.connect();
+  
   try {
     const formData = await request.json();
-    //console.log('Dados recebidos:', formData); // Log para debug
-
-    connection = await mysql.createConnection({
-      host: 'localhost',
-      user: 'root',
-      password: '',
-      database: 'db-promo'
-    });
-
-    // Garantir que todos os valores sejam strings ou números
+    
     const values = [
-      String(formData.nome || ''),
-      String(formData.cpf || ''),
-      String(formData.email || ''),
-      String(formData.ddd || ''),
-      String(formData.celular || ''),
-      String(formData.estado || ''),
-      String(formData.cidade || ''),
-      String(formData.data || ''),
-      String(formData.aceitaTermos || 'não'),
-      String(formData.cupom || ''),
-      String(formData.escolhahorario || ''),
-      String(formData.clienteTouti || 'não'),
-      String(formData.saurus || ''),
-      String(formData.endereco || '')
+      formData.nome || '',
+      formData.cpf || '',
+      formData.email || '',
+      formData.ddd || '',
+      formData.celular || '',
+      formData.estado || '',
+      formData.cidade || '',
+      formData.data || new Date().toISOString(),
+      formData.aceitaTermos || false,
+      formData.cupom || '',
+      formData.escolhahorario || '',
+      formData.clienteTouti || 'não',
+      formData.saurus || '',
+      formData.endereco || ''
     ];
 
-    const [result] = await connection.execute(
-      'INSERT INTO promocao (nome, cpf, email, ddd, celular, uf, cidade, dtdata, aceito_termos, cupom, escolhahorario, clienteTouti, saurus, endereco) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      values
-    );
+    const query = `
+      INSERT INTO promocao (
+        nome, cpf, email, ddd, celular, uf, cidade, dtdata, 
+        aceito_termos, cupom, escolhahorario, clienteTouti, saurus, endereco
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+      RETURNING *
+    `;
 
-    return NextResponse.json({ success: true });
+    const result = await client.query(query, values);
+    
+    return NextResponse.json({ 
+      success: true, 
+      data: result.rows[0] 
+    });
+
   } catch (error) {
     console.error('Erro no cadastro:', error);
     return NextResponse.json(
@@ -45,6 +54,6 @@ export async function POST(request) {
       { status: 500 }
     );
   } finally {
-    if (connection) await connection.end();
+    client.release();
   }
 }
